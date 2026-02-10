@@ -1,0 +1,26 @@
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
+
+package(
+    default_visibility = ["//:__subpackages__"],
+)
+
+cc_library(
+    name = "js_converter",
+    hdrs = [
+        "js_converter.h",
+        "js_converter_inl.h",
+    ],
+    deps = [
+        "//cppschema/common:visitor_macros",
+    ],
+)
+
+cc_library(
+    name = "js_api_bridge",
+    hdrs = ["js_api_bridge.h"],
+    deps = [
+        ":js_converter",
+        "//cppschema/apispec:apispec",
+        "//cppschema/common:visitor_macros",
+    ],
+)

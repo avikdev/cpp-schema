@@ -1,0 +1,36 @@
+# Bazel (https://bazel.build/) BUILD file for ujschema.
+
+exports_files(
+    ["MODULE.bazel"],
+    visibility = ["//visibility:public"],
+)
+
+alias(
+    name = "visitor_macros",
+    actual = "//cppschema/common:visitor_macros",
+    visibility = ["//visibility:public"],
+)
+
+alias(
+    name = "apispec",
+    actual = "//cppschema/apispec:apispec",
+    visibility = ["//visibility:public"],
+)
+
+alias(
+    name = "backend_bridge",
+    actual = "//cppschema/backend:backend_bridge",
+    visibility = ["//visibility:public"],
+)
+
+alias(
+    name = "js_converter",
+    actual = "//cppschema/wasm:js_converter",
+    visibility = ["//visibility:public"],
+)
+
+alias(
+    name = "js_api_bridge",
+    actual = "//cppschema/wasm:js_api_bridge",
+    visibility = ["//visibility:public"],
+)

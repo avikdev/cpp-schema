@@ -1,0 +1,16 @@
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
+
+package(
+    default_visibility = ["//:__subpackages__"],
+)
+
+cc_library(
+    name = "apispec",
+    hdrs = [
+        "api_framework.h",
+        "api_registry.h",
+    ],
+    deps = [
+        "//cppschema/common:visitor_macros",
+    ],
+)

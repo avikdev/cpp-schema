@@ -1,0 +1,10 @@
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
+
+package(
+    default_visibility = ["//:__subpackages__"],
+)
+
+cc_library(
+    name = "visitor_macros",
+    hdrs = ["visitor_macros.h"],
+)
