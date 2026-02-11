@@ -1,0 +1,74 @@
+load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library", "cc_test")
+load("@aspect_rules_js//js:defs.bzl", "js_library", "js_binary", "js_test")
+load("@emsdk//emscripten_toolchain:wasm_rules.bzl", "wasm_cc_binary")
+
+cc_library(
+    name = "graph_api",
+    hdrs = ["graph_api.h"],
+    deps = [
+        "@cppschema//:apispec",
+    ],
+)
+
+cc_library(
+    name = "graph_backend",
+    srcs = ["graph_backend.cpp"],
+    deps = [
+        "@cppschema//:backend_bridge",
+        ":graph_api",
+    ],
+    alwayslink = 1,  # Forced linking, even if not directly referenced
+)
+
+# This is a binary with no `main` function, which is ok as this will never be build into a
+# standalone system binary, always converted into a wasm binary before using.
+# The `--no-entry` flag in the linkopts below tells the linker to allow this.
+cc_binary(
+    name = "graph_bind",
+    srcs = [
+        "graph_embind.cpp",
+    ],
+    deps = [
+         ":graph_api",
+         ":graph_backend",
+         "@cppschema//:js_api_bridge",
+         "@cppschema//:js_converter",
+    ],
+    features = ["emcc_debug_link"],
+    linkopts = [
+        "--bind",  # Enable embind
+        "-sMODULARIZE",
+        "--closure=0",  # Do not use closure
+        "-sSTANDALONE_WASM",
+        "--no-entry",
+    ],
+    # This target won't build successfully on its own using system headers, because of missing
+    # emscripten headers etc. Therefore, we hide it from wildcards.
+    tags = ["manual"],
+)
+
+wasm_cc_binary(
+    name = "graph_wasm",
+    cc_target = ":graph_bind",
+)
+
+js_library(
+    name = "graph_jslib_loader",
+    srcs = ["graph_jslib_loader.mjs"],
+    data = [":graph_wasm"],
+)
+
+js_binary(
+    name = "graph_jslib_runner",
+    entry_point = "graph_jslib_runner.mjs",
+    data = [
+        ":graph_jslib_loader",
+        "graph_jslib_runner.mjs",
+    ],
+)
+
+js_test(
+    name = "graph_jslib_test",
+    entry_point = "graph_jslib.test.mjs",
+    data = [":graph_jslib_loader"],
+)

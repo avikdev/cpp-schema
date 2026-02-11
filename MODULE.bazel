@@ -8,5 +8,7 @@ bazel_dep(name = "rules_cc", version = "0.1.5")
 bazel_dep(name = "aspect_rules_js", version = "2.9.2")
 # TODO: Add unit tests.
 # bazel_dep(name = "googletest", version = "1.17.0")
-# https://github.com/emscripten-core/emsdk/issues/1642
-bazel_dep(name = "emsdk", version = "4.0.17")
+
+# NOTE: This module has no dependency on `emsdk`, it is upto the starting
+# wasm_cc_binary rule to depend on `emsdk`. So there is no bazel_dep on
+# `emsdk` here. However the downstream module must declare it.

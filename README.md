@@ -9,11 +9,11 @@ The backend layer provides a concrete implementation for the api, and utilizes f
 ## Dependency Architecture
 
 ```
-[ API-SCHEMA ] (Header Only)
+       [ API-SPEC ] (Header Only)
        /            \
       /              \ (Refers to Schema)
      v                v
-[ BACKEND ]       [ EMSCRIPTEN ]
+[ BACKEND ]         [ WASM ]
 (Implementation)  (Bindings Layer)
       |                |
       + ------+------> +
@@ -21,7 +21,27 @@ The backend layer provides a concrete implementation for the api, and utilizes f
        (Forced Linking)
 ```
 
-### Example use
+## Code organization
+
+The source directory is `cppschema`.
+
+- **`common`**: Common code. Has preprocessor macros for emulating compile time reflection.
+- **`apispec`**: Headers for defining API spec. This should be included by both `backend` and `wasm`.
+- **`backend`**: Headers for defining and registering the backend logic.
+- **`wasm`**: Headers for generating the binding code based solely on the `apispec`.
+
+The `example` directory has an dummy end-to-end implementation (a complete Bazel module) which can
+be used as a reference. It implements some dummy logic to insert and delete nodes in a graph.
+See the `BUILD.bazel` file inside for the steps.
+
+- Defines the api schema (rule `graph_api`).
+- Registers a dummy backend logic (rule `graph_backend`).
+- Generates emscripten binding code (rule `graph_bind`).
+- Output wasm binary and glue JS code (rule `graph_wasm`).
+- A backend JS test (rule `graph_jslib_test`) and a standalone binary (rule `graph_jslib_runner`)
+  which shows how to invoke the WebAssembly code.
+
+## Example use
 
 **Part A**: Define the API
 
@@ -60,6 +80,10 @@ class GraphApiImpl : public ApiBackend<GraphApi> {
 };
 
 static __attribute__((constructor)) void RegisterGraphApiImpl() {
+    GraphApi::ImplPtrs<GraphApiImpl> ptrs = {
+        .addNode = &GraphApiImpl::addNodeImpl,
+        .deleteNode = &GraphApiImpl::deleteNodeImpl,
+    };
     RegisterBackend<GraphApi, GraphApiImpl>(new GraphApiImpl(), ptrs);
 }
 ```

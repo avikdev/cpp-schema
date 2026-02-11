@@ -1,0 +1,17 @@
+module(
+    name = "cppschema-example",
+    version = "1.0.0",
+)
+
+bazel_dep(name = "rules_cc", version = "0.1.5")
+bazel_dep(name = "aspect_rules_js", version = "2.9.2")
+bazel_dep(name = "aspect_rules_jest", version = "0.24.3")
+
+bazel_dep(name = "cppschema")
+local_path_override(
+    module_name = "cppschema",
+    path = "..",
+)
+
+# https://github.com/emscripten-core/emsdk/issues/1642
+bazel_dep(name = "emsdk", version = "4.0.17")

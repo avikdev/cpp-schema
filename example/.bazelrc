@@ -1,0 +1,4 @@
+common --cxxopt='-std=c++20'
+test --test_output=errors
+# For macos development.
+common --macos_minimum_os=13.3 --xcode_version=25
