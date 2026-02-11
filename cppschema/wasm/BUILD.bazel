@@ -11,6 +11,7 @@ cc_library(
         "js_converter_inl.h",
     ],
     deps = [
+        "//cppschema/common:types",
         "//cppschema/common:visitor_macros",
     ],
 )

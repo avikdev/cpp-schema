@@ -48,9 +48,6 @@ public:
         assert(backend_instance_ != nullptr && "Backend not set");
         auto it = dispatchers_.find(name);
         assert(it != dispatchers_.end() && "Method not implemented");
-        // if (it == dispatchers_.end()) {
-        //     throw std::runtime_error("Method not implemented: " + name);
-        // }
         void* rawRes = it->second(static_cast<const void*>(&req));
         // Cast back to the expected type and clean up the heap-allocated response
         Res* typedRes = static_cast<Res*>(rawRes);

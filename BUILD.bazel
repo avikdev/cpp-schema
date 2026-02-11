@@ -6,6 +6,12 @@ exports_files(
 )
 
 alias(
+    name = "types",
+    actual = "//cppschema/common:types",
+    visibility = ["//visibility:public"],
+)
+
+alias(
     name = "visitor_macros",
     actual = "//cppschema/common:visitor_macros",
     visibility = ["//visibility:public"],

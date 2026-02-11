@@ -8,3 +8,8 @@ cc_library(
     name = "visitor_macros",
     hdrs = ["visitor_macros.h"],
 )
+
+cc_library(
+    name = "types",
+    hdrs = ["types.h"],
+)

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "cppschema/apispec/api_framework.h"
+#include "cppschema/common/types.h"
 #include "cppschema/common/visitor_macros.h"
 
 namespace graph {
@@ -16,8 +17,10 @@ struct GraphApi {
     cppschema::ApiStub<AddNodeRequest, std::string> addNode;
     // Delete a node by id, returns if successfully deleted.
     cppschema::ApiStub<std::string, bool> deleteNode;
+    // Clears all data.
+    cppschema::ApiStub<VoidType, VoidType> clearGraph;
 
-    DEFINE_API_VISITOR_FUNCTION(addNode, deleteNode);
+    DEFINE_API_VISITOR_FUNCTION(addNode, deleteNode, clearGraph);
 };
 
 }  // namespace graph

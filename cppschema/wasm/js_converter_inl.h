@@ -34,6 +34,14 @@ struct is_primitive_like : std::disjunction<
     std::is_same<T, uint64_t>
 > {};
 
+// VOID: Type trait / Concept to identify VoidType (represents void in C++).
+template <typename T> struct is_void_like : std::false_type {};
+template <> struct is_void_like<VoidType> : std::true_type {};
+
+// TODO: Use concept, like:
+// template <typename T> concept is_void_type = std::is_same_v<std::decay_t<T>, VoidType>;
+
+
 // PAIRS: std::pair.
 template <typename T>
 struct is_pair_like : std::false_type {};
@@ -102,6 +110,7 @@ struct is_visible_struct_like<
 template<typename T>
 struct is_unsupported_like : std::conjunction<
     std::negation<is_primitive_like<T>>,
+    std::negation<is_void_like<T>>,
     std::negation<is_pair_like<T>>,
     std::negation<is_tuple_like<T>>,
     std::negation<is_array_like<T>>,
@@ -125,6 +134,17 @@ struct JSConverter<PrimitiveType, std::enable_if_t<internal::is_primitive_like<P
     }
     static PrimitiveType fromJS(emscripten::val v) {
         return v.as<PrimitiveType>();
+    }
+};
+
+// VOID: VoidType (represents void in C++).
+template <typename VoidLikeType>
+struct JSConverter<VoidLikeType, std::enable_if_t<internal::is_void_like<VoidLikeType>::value>> {
+    static emscripten::val toJS(const VoidLikeType& value) {
+        return emscripten::val::object();
+    }
+    static VoidLikeType fromJS(emscripten::val v) {
+        return {};
     }
 };
 
