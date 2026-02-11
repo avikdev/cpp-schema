@@ -27,6 +27,12 @@ class GraphApiImpl : public cppschema::ApiBackend<GraphApi> {
         return false;
     }
 
+    VoidType clearGraphImpl(const VoidType&) {
+        node_storage_.clear();
+        std::cout << "[Backend] Cleared all nodes." << std::endl;
+        return VoidType{};
+    }
+
  private:
     int32_t id_counter_ = 1000;
     std::map<std::string, std::string> node_storage_;
@@ -37,6 +43,7 @@ static __attribute__((constructor)) void RegisterGraphApiBackend() {
     GraphApi::ImplPtrs<GraphApiImpl> ptrs = {
         .addNode = &GraphApiImpl::addNodeImpl,
         .deleteNode = &GraphApiImpl::deleteNodeImpl,
+        .clearGraph = &GraphApiImpl::clearGraphImpl,
     };
     RegisterBackend<GraphApi, GraphApiImpl>(impl, ptrs);
 }

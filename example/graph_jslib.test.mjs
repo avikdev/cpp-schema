@@ -33,10 +33,13 @@ test('WASM Graph Library Test', async (t) => {
     assert.equal(typeof nodeId, 'string', "Node ID should be a string");
     assert.ok(nodeId.length > 0, "Node ID should be a non-empty string");
 
-    const deleteOk1 = assertRpcOkAndGetPayload(graph.deleteNode(nodeId));
-    assert.strictEqual(deleteOk1, true, "Node should be deleted successfully");
+    const deleteDone1 = assertRpcOkAndGetPayload(graph.deleteNode(nodeId));
+    assert.strictEqual(deleteDone1, true, "Node should be deleted successfully");
 
-    const deleteOk2 = assertRpcOkAndGetPayload(graph.deleteNode(nodeId));
-    assert.strictEqual(deleteOk2, false, "Deleting the same node again should return false");
+    const deleteDone2 = assertRpcOkAndGetPayload(graph.deleteNode(nodeId));
+    assert.strictEqual(deleteDone2, false, "Deleting the same node again should return false");
+
+    const clearResult = assertRpcOkAndGetPayload(graph.clearGraph({}));
+    assert.deepEqual(clearResult, {}, "clearGraph should return null (VoidType)");
   });
 });

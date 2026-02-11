@@ -24,8 +24,10 @@ void RegisterBackend(Impl* instance, const typename API::template ImplPtrs<Impl>
     auto binder = [&](auto stub, auto& impl_ref, auto member_ptr) {
         using Req = typename decltype(stub)::RequestType;
         using Res = typename decltype(stub)::ResponseType;
+        using ImplPtr = Res (Impl::*)(const Req&);
+        static_assert(std::is_same_v<Impl, std::decay_t<decltype(impl_ref)>>, "Impl type mismatch");
+        static_assert(std::is_same_v<ImplPtr, decltype(member_ptr)>, "Member pointer type mismatch");
         const char* name = decltype(stub)::name;
-
         registry.RegisterHandler(name, [instance, member_ptr](const void* rawReq) -> void* {
             const Req& typedReq = *static_cast<const Req*>(rawReq);
             Res result = (instance->*member_ptr)(typedReq);
