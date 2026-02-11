@@ -45,7 +45,7 @@ static __attribute__((constructor)) void RegisterGraphApiBackend() {
         .deleteNode = &GraphApiImpl::deleteNodeImpl,
         .clearGraph = &GraphApiImpl::clearGraphImpl,
     };
-    RegisterBackend<GraphApi, GraphApiImpl>(impl, ptrs);
+    cppschema::RegisterBackend<GraphApi, GraphApiImpl>(impl, ptrs);
 }
 
 }  // namespace graph

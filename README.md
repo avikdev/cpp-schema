@@ -30,17 +30,6 @@ The source directory is `cppschema`.
 - **`backend`**: Headers for defining and registering the backend logic.
 - **`wasm`**: Headers for generating the binding code based solely on the `apispec`.
 
-The `example` directory has an dummy end-to-end implementation (a complete Bazel module) which can
-be used as a reference. It implements some dummy logic to insert and delete nodes in a graph.
-See the `BUILD.bazel` file inside for the steps.
-
-- Defines the api schema (rule `graph_api`).
-- Registers a dummy backend logic (rule `graph_backend`).
-- Generates emscripten binding code (rule `graph_bind`).
-- Output wasm binary and glue JS code (rule `graph_wasm`).
-- A backend JS test (rule `graph_jslib_test`) and a standalone binary (rule `graph_jslib_runner`)
-  which shows how to invoke the WebAssembly code.
-
 ## Example use
 
 **Part A**: Define the API
