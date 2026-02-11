@@ -41,20 +41,19 @@ template <> struct is_void_like<VoidType> : std::true_type {};
 // TODO: Use concept, like:
 // template <typename T> concept is_void_type = std::is_same_v<std::decay_t<T>, VoidType>;
 
-
 // PAIRS: std::pair.
 template <typename T>
 struct is_pair_like : std::false_type {};
 template <typename T1, typename T2>
 struct is_pair_like<std::pair<T1, T2>> : std::true_type {};
 
-// PAIRS: std::tuple.
+// TUPLE: std::tuple.
 template <typename T>
 struct is_tuple_like : std::false_type {};
 template <typename... Ts>
 struct is_tuple_like<std::tuple<Ts...>> : std::true_type {};
 
-// Map-like: Has key_type and mapped_type
+// MAP: Has key_type and mapped_type
 template <typename T, typename = void>
 struct is_map_like_impl : std::false_type {};
 
@@ -69,19 +68,23 @@ struct is_map_like_impl<T, std::void_t<
 template <typename T>
 using is_map_like = is_map_like_impl<T>;
 
-// Array-like: Has value_type, but NOT a map, and NOT a string
+// ARRAY: Has value_type, but NOT a map, and NOT a string
 template <typename T, typename = void>
 struct is_array_like : std::false_type {};
 template <typename T>
 struct is_array_like<T, std::void_t<typename T::value_type, typename T::iterator>> 
     : std::bool_constant<!is_map_like<T>::value && !std::is_same_v<T, std::string>> {};
 
-// Set-like: Has key_type and value_type, but they are the same
+// SET: Has key_type and value_type, but they are the same
 template <typename T, typename = void>
 struct is_set_like : std::false_type {};
 template <typename T>
 struct is_set_like<T, std::void_t<typename T::key_type, typename T::value_type>> 
     : std::bool_constant<std::is_same_v<typename T::key_type, typename T::value_type> && !is_array_like<T>::value> {};
+
+// OPTIONAL: std::optional.
+template <typename T> struct is_optional_like : std::false_type {};
+template <typename U> struct is_optional_like<std::optional<U>> : std::true_type {};
 
 // Visible struct like, i.e. a struct whose members are visible. Supports only those C++ structs
 // which has defined the visitor MACRO.
@@ -116,6 +119,7 @@ struct is_unsupported_like : std::conjunction<
     std::negation<is_array_like<T>>,
     std::negation<is_map_like<T>>,
     std::negation<is_set_like<T>>,
+    std::negation<is_optional_like<T>>,
     std::negation<is_visible_struct_like<T>>
 > {};
 
@@ -261,6 +265,25 @@ struct JSConverter<SetType, std::enable_if_t<internal::is_set_like<SetType>::val
             s.insert(JSConverter<typename SetType::value_type>::fromJS(v[i]));
         }
         return s;
+    }
+};
+
+// OPTIONAL: std::optional
+template <typename OptionalType>
+struct JSConverter<OptionalType, std::enable_if_t<internal::is_optional_like<OptionalType>::value>> {
+    static emscripten::val toJS(const OptionalType& opt) {
+        if (opt.has_value()) {
+            return JSConverter<typename OptionalType::value_type>::toJS(opt.value());
+        } else {
+            return emscripten::val::null();
+        }
+    }
+    static OptionalType fromJS(emscripten::val v) {
+        if (v.isNull() || v.isUndefined()) {
+            return std::nullopt;
+        } else {
+            return JSConverter<typename OptionalType::value_type>::fromJS(v);
+        }
     }
 };
 
