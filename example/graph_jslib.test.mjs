@@ -25,7 +25,7 @@ test('WASM Graph Library Test', async (t) => {
     return rpcResp.data;
   }
 
-  await t.test('verify the dummy backend logic worked', () => {
+  await t.test('verify node id and deletion', () => {
     const nodeId = assertRpcOkAndGetPayload(graph.addNode({
       ui_name: "Test Node",
       timestamp: Math.floor(Date.now() / 1000),
@@ -41,5 +41,28 @@ test('WASM Graph Library Test', async (t) => {
 
     const clearResult = assertRpcOkAndGetPayload(graph.clearGraph({}));
     assert.deepEqual(clearResult, {}, "clearGraph should return null (VoidType)");
+  });
+
+  await t.test('verify edges insertion', () => {
+    const nodeId1 = assertRpcOkAndGetPayload(graph.addNode({
+      ui_name: "Filter Sequence",
+      timestamp: 1772230000,
+    }));
+    const nodeId2 = assertRpcOkAndGetPayload(graph.addNode({
+      ui_name: "Sum Sequence",
+      timestamp: 1772230001,
+    }));
+
+    assert.equal(nodeId1, 'node_1001', "Node ID 1 mismatch");
+    assert.equal(nodeId2, 'node_1002', "Node ID 2 mismatch");
+
+    const addEdgesReq = {
+      entries: [
+        { source: nodeId1, target: nodeId2 },
+        { source: nodeId2, target: nodeId1 },
+      ]
+    };
+    const edgeIds = assertRpcOkAndGetPayload(graph.addEdges(addEdgesReq));
+    assert.deepEqual(edgeIds, ["edge_5000", "edge_5001"]);
   });
 });

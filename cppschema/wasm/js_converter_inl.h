@@ -71,9 +71,7 @@ using is_map_like = is_map_like_impl<T>;
 // ARRAY: Has value_type, but NOT a map, and NOT a string
 template <typename T, typename = void>
 struct is_array_like : std::false_type {};
-template <typename T>
-struct is_array_like<T, std::void_t<typename T::value_type, typename T::iterator>> 
-    : std::bool_constant<!is_map_like<T>::value && !std::is_same_v<T, std::string>> {};
+template <typename T, typename A> struct is_array_like<std::vector<T, A>> : std::true_type {};
 
 // SET: Has key_type and value_type, but they are the same
 template <typename T, typename = void>
@@ -241,7 +239,7 @@ struct JSConverter<ArrayType, std::enable_if_t<internal::is_array_like<ArrayType
         unsigned int len = v["length"].as<unsigned int>();
         for (unsigned int i = 0; i < len; ++i) {
             // Use back_inserter if available, or just push_back for vector/list
-            container.insert(container.end(), JSConverter<typename ArrayType::value_type>::fromJS(v[i]));
+            container.push_back(JSConverter<typename ArrayType::value_type>::fromJS(v[i]));
         }
         return container;
     }
@@ -301,6 +299,12 @@ struct JSConverter<StructType, std::enable_if_t<internal::is_visible_struct_like
 
     static StructType fromJS(emscripten::val v) {
         StructType s;
+        auto lambda = [&v]<typename T>(const char* name, T& t) -> void {
+            if (v.hasOwnProperty(name)) {
+                t = JSConverter<T>::fromJS(v[name]);
+            }
+        };
+        s._visit_members(lambda);
         return s;
     }
 };

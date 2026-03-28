@@ -14,10 +14,22 @@ cc_library(
     name = "graph_backend",
     srcs = ["graph_backend.cpp"],
     deps = [
-        "@cppschema//:backend_bridge",
         ":graph_api",
+        "@abseil-cpp//absl/log",
+        "@cppschema//:backend_bridge",
     ],
     alwayslink = 1,  # Forced linking, even if not directly referenced
+)
+
+cc_test(
+    name = "graph_backend_test",
+    srcs = ["graph_backend_test.cpp"],
+    deps = [
+        ":graph_api",
+        ":graph_backend",
+        "@cppschema//:apispec",
+        "@googletest//:gtest_main",
+    ],
 )
 
 # This is a binary with no `main` function, which is ok as this will never be build into a
@@ -37,10 +49,12 @@ cc_binary(
     features = ["emcc_debug_link"],
     linkopts = [
         "--bind",  # Enable embind
-        "-sMODULARIZE",
         "--closure=0",  # Do not use closure
-        "-sSTANDALONE_WASM",
+        "--clear-cache=1",
         "--no-entry",
+        "-s MODULARIZE",
+        "-s STANDALONE_WASM",
+        "-s ENVIRONMENT=node",
     ],
     # This target won't build successfully on its own using system headers, because of missing
     # emscripten headers etc. Therefore, we hide it from wildcards.
