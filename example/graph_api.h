@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "cppschema/apispec/api_framework.h"
+#include "cppschema/common/enum_registry.h"
 #include "cppschema/common/types.h"
 #include "cppschema/common/visitor_macros.h"
 
@@ -16,12 +17,19 @@ struct EdgeConnection {
     DEFINE_STRUCT_VISITOR_FUNCTION(source, target);
 };
 
+enum class NodeTypeEnum {
+    UNKNOWN, GRAPH_INPUT, GRAPH_OUTPUT, FUNCTION,
+};
+
+DEFINE_ENUM_CONVERSION_FUNCTION(NodeTypeEnum, UNKNOWN, GRAPH_INPUT, GRAPH_OUTPUT, FUNCTION);
+
 struct GraphApi {
     struct AddNodeRequest {
         std::string ui_name;
+        NodeTypeEnum node_type = NodeTypeEnum::UNKNOWN;
         int32_t timestamp;
 
-        DEFINE_STRUCT_VISITOR_FUNCTION(ui_name, timestamp);
+        DEFINE_STRUCT_VISITOR_FUNCTION(ui_name, node_type, timestamp);
     };
 
     struct AddEdgesRequest {

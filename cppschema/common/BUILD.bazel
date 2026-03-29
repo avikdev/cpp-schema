@@ -5,6 +5,16 @@ package(
 )
 
 cc_library(
+    name = "enum_registry",
+    srcs = ["enum_registry.cc"],
+    hdrs = ["enum_registry.h"],
+    deps = [
+        ":visitor_macros",
+        "@abseil-cpp//absl/log",
+    ],
+)
+
+cc_library(
     name = "visitor_macros",
     hdrs = ["visitor_macros.h"],
 )

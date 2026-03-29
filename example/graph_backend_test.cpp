@@ -1,4 +1,4 @@
-// Execute this test as:
+// Execute this test from the "example" dir as:
 // $ bazel test //:graph_backend_test
 
 #include <iostream>
@@ -19,6 +19,7 @@ using AddEdgesRequest = GraphApi::AddEdgesRequest;
 TEST(GraphApiImplTest, Basic) {
     AddNodeRequest add_node_req = {
         .ui_name = "Merge vectors",
+        .node_type = NodeTypeEnum::FUNCTION,
         .timestamp = 1772230000,
     };
     std::string node_id0 = ApiRegistry<GraphApi>::Get().template Call<AddNodeRequest, std::string>("addNode", add_node_req);

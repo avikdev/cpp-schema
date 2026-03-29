@@ -5,15 +5,25 @@
 
 namespace graph {
 
+std::string NodeTypeToStr(const NodeTypeEnum node_type) {
+  switch (node_type) {
+    case NodeTypeEnum::UNKNOWN: return "UNKNOWN";
+    case NodeTypeEnum::GRAPH_INPUT: return "GRAPH_INPUT";
+    case NodeTypeEnum::GRAPH_OUTPUT: return "GRAPH_OUTPUT";
+    case NodeTypeEnum::FUNCTION: return "FUNCTION";
+  }
+}
+
 class GraphApiImpl : public cppschema::ApiBackend<GraphApi> {
  public:
     using AddEdgesRequest = GraphApi::AddEdgesRequest;
 
     std::string addNodeImpl(const GraphApi::AddNodeRequest& request) {
-        std::string new_id = "node_" + std::to_string(node_counter_++);
+        std::string new_id = NodeTypeToStr(request.node_type) + "_" + std::to_string(node_counter_++);
         node_storage_[new_id] = request.ui_name;
-        LOG(INFO) << "[Backend] Added node: " << request.ui_name 
-                    << " with ID: " << new_id 
+        LOG(ERROR) << "[Backend] Added node: " << request.ui_name 
+                    << " with type: " << NodeTypeToStr(request.node_type)
+                    << " with ID: " << new_id
                     << " at t=" << request.timestamp;
         return new_id;
     }

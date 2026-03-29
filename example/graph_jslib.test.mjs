@@ -25,13 +25,15 @@ test('WASM Graph Library Test', async (t) => {
     return rpcResp.data;
   }
 
-  await t.test('verify node id and deletion', () => {
+  await t.test('verify node insert and delete', () => {
     const nodeId = assertRpcOkAndGetPayload(graph.addNode({
       ui_name: "Test Node",
+      node_type: "GRAPH_INPUT",
       timestamp: Math.floor(Date.now() / 1000),
     }));
     assert.equal(typeof nodeId, 'string', "Node ID should be a string");
     assert.ok(nodeId.length > 0, "Node ID should be a non-empty string");
+    assert.equal(nodeId, 'GRAPH_INPUT_1000', "Unexpected node id");
 
     const deleteDone1 = assertRpcOkAndGetPayload(graph.deleteNode(nodeId));
     assert.strictEqual(deleteDone1, true, "Node should be deleted successfully");
@@ -46,15 +48,17 @@ test('WASM Graph Library Test', async (t) => {
   await t.test('verify edges insertion', () => {
     const nodeId1 = assertRpcOkAndGetPayload(graph.addNode({
       ui_name: "Filter Sequence",
+      node_type: "FUNCTION",
       timestamp: 1772230000,
     }));
     const nodeId2 = assertRpcOkAndGetPayload(graph.addNode({
       ui_name: "Sum Sequence",
+      node_type: "FUNCTION",
       timestamp: 1772230001,
     }));
 
-    assert.equal(nodeId1, 'node_1001', "Node ID 1 mismatch");
-    assert.equal(nodeId2, 'node_1002', "Node ID 2 mismatch");
+    assert.equal(nodeId1, 'FUNCTION_1001', "Node ID 1 mismatch");
+    assert.equal(nodeId2, 'FUNCTION_1002', "Node ID 2 mismatch");
 
     const addEdgesReq = {
       entries: [

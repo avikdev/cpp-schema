@@ -10,6 +10,7 @@ import { loadGraphWasmModule } from './graph_jslib_loader.mjs';
 
   let res = graph.addNode({
     ui_name: "Test Node",
+    node_type: "FUNCTION",
     timestamp: Math.floor(Date.now() / 1000),
   });
   console.log("addNode -> ", res);

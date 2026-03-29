@@ -73,13 +73,30 @@
         FOR_EACH(VISIT_STRUCT_FIELD, __VA_ARGS__) \
     }
 
+
+// template<typename E>
+// struct EnumIntrospect {
+//     struct enum_does_not_have_introspect{};
+
+//     enum_does_not_have_introspect _val_to_info(const E e) {
+//         static_assert(false, "unsupported enum");
+//     }
+
+//     enum_does_not_have_introspect _name_to_val(const std::string& name) {
+//         static_assert(false, "unsupported enum");
+//     }
+// };
+
+
+
+
 /**
  * Macro: DEFINE_API_VISITOR_FUNCTION
  *
  * @brief Injects some traits and visitor functions which enables a visitor (a template lambda)
  * to process each api description with their request and response types.
  * 
- * Theere are multiple use cases of this. The simplest one is to get the name and request-response
+ * There are multiple use cases of this. The simplest one is to get the name and request-response
  * types of each API, which can be done by visiting with a lambda like:
  * 
  * @example
@@ -104,7 +121,6 @@
  * 
  * @param ... List of member api descriptors to be visited.
  */
-
 #define API_VISITOR_DEFINE_TRAITS_STRUCT(field) \
     struct field##_traits { \
         using RequestType = typename decltype(field)::RequestType; \

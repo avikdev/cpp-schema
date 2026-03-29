@@ -3,6 +3,8 @@
 #include <utility>
 #include <type_traits>
 
+#include "absl/log/log.h"
+#include "cppschema/common/enum_registry.h"
 #include "cppschema/common/visitor_macros.h"
 
 namespace cppschema::jsbridge {
@@ -107,6 +109,30 @@ struct is_visible_struct_like<
     >
 > : std::true_type {};
 
+// ENUMS: should be scoped enum (i.e. not trivially convertible to int).
+template <typename T>
+struct is_enum_like : std::bool_constant<
+    std::is_enum_v<T> &&
+    !std::is_convertible_v<T, int>
+> {};
+
+// template <typename T, typename = void>
+// struct is_enum_w_introspect : std::false_type {};
+
+// template <typename T>
+// struct is_enum_w_introspect<
+//     T,
+//     std::void_t<
+//         // must be callable
+//         decltype(
+//             std::declval<EnumIntrospect<T>>().to_name(std::declval<T>())
+//         )
+//     >
+// > : std::bool_constant<
+//         std::is_enum_v<T> &&
+//         !std::is_convertible_v<T, int>
+//     > {};
+
 // Unsupported type: One which satisfies none of the above.
 template<typename T>
 struct is_unsupported_like : std::conjunction<
@@ -118,7 +144,8 @@ struct is_unsupported_like : std::conjunction<
     std::negation<is_map_like<T>>,
     std::negation<is_set_like<T>>,
     std::negation<is_optional_like<T>>,
-    std::negation<is_visible_struct_like<T>>
+    std::negation<is_visible_struct_like<T>>,
+    std::negation<is_enum_like<T>>
 > {};
 
 }  // namespace internal
@@ -306,6 +333,35 @@ struct JSConverter<StructType, std::enable_if_t<internal::is_visible_struct_like
         };
         s._visit_members(lambda);
         return s;
+    }
+};
+
+// ENUM:
+template <typename EnumType>
+struct JSConverter<EnumType, std::enable_if_t<internal::is_enum_like<EnumType>::value>> {
+    using ToEnumFunc = EnumRegistry::ToEnumFunc<EnumType>;
+    using ToInfoFunc = EnumRegistry::ToInfoFunc<EnumType>;
+
+    static emscripten::val toJS(const EnumType& value) {
+        const ToInfoFunc toInfo = EnumRegistry::instance().getToInfo<EnumType>();
+        if (!toInfo) {
+            LOG(FATAL) << "Enum not registered";
+        }
+        const auto [name, ordinal] = toInfo(value);
+        return emscripten::val(std::string(name));
+    }
+
+    static EnumType fromJS(emscripten::val v) {
+        const ToEnumFunc toEnum = EnumRegistry::instance().getToEnum<EnumType>();
+        if (!toEnum) {
+            LOG(FATAL) << "Enum not registered";
+        }
+        const std::string strval = v.as<std::string>();
+        std::optional<EnumType> enumv = toEnum(v.as<std::string>());
+        if (enumv.has_value()) {
+            return std::move(enumv).value();
+        }
+        return EnumType{};
     }
 };
 
