@@ -12,6 +12,12 @@ alias(
 )
 
 alias(
+    name = "enum_registry",
+    actual = "//cppschema/common:enum_registry",
+    visibility = ["//visibility:public"],
+)
+
+alias(
     name = "visitor_macros",
     actual = "//cppschema/common:visitor_macros",
     visibility = ["//visibility:public"],
