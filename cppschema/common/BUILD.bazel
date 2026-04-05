@@ -14,6 +14,29 @@ cc_library(
     ],
 )
 
+cc_test(
+    name = "enum_registry_test",
+    srcs = ["enum_registry_test.cc"],
+    deps = [
+        ":enum_registry",
+        "@googletest//:gtest_main",
+    ],
+)
+
+cc_library(
+    name = "strong_types",
+    hdrs = ["strong_types.h"],
+)
+
+cc_test(
+    name = "strong_types_test",
+    srcs = ["strong_types_test.cc"],
+    deps = [
+        ":strong_types",
+        "@googletest//:gtest_main",
+    ],
+)
+
 cc_library(
     name = "visitor_macros",
     hdrs = ["visitor_macros.h"],

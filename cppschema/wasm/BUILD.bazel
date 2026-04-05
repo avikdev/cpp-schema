@@ -1,4 +1,4 @@
-load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
+load("@rules_cc//cc:defs.bzl", "cc_library")
 
 package(
     default_visibility = ["//:__subpackages__"],
@@ -12,6 +12,7 @@ cc_library(
     ],
     deps = [
         "//cppschema/common:enum_registry",
+        "//cppschema/common:strong_types",
         "//cppschema/common:types",
         "//cppschema/common:visitor_macros",
     ],

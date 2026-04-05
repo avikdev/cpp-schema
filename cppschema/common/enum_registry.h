@@ -10,7 +10,28 @@
 #include <utility>
 
 #include "absl/log/log.h"
+#include "cppschema/common/visitor_macros.h"
 
+/**
+ * @brief A global registry for enum conversion functions. It provides
+ * conversion functions to convert from string to enum value, and get the
+ * string and ordinal of an enum value.
+ *
+ * This is used in the library to convert between C++ enums and JS strings in
+ * a bidirectional way. In JS the enums are represented as strings, and in C++
+ * they are enums.
+ * This works only for scoped enums (i.e. those declared with "enum class ...").
+ * Example usage:
+ *
+ * @example
+ * enum class NodeTypeEnum { UNKNOWN, INPUT, OUTPUT, FUNCTION };
+ * DEFINE_ENUM_CONVERSION_FUNCTION(NodeTypeEnum, UNKNOWN, INPUT, OUTPUT, FUNCTION);
+ *
+ * This will register the conversion functions for NodeTypeEnum, and you can then use
+ * - EnumRegistry::instance().getToEnum<NodeTypeEnum>()
+ * - EnumRegistry::instance().getToInfo<NodeTypeEnum>()
+ * to get the conversion functions. See the unit tests for example usage.
+ */
 class EnumRegistry {
 public:
     // Signature types for clarity
@@ -108,8 +129,9 @@ private:
  * @param ... Explicit list of the enum values.
  */
 #define DEFINE_ENUM_CONVERSION_FUNCTION(EnumType, ...) \
-    static inline bool __ ## EnumType ## _register = []{ \
+    __attribute__((unused)) static inline const bool __ ## EnumType ## _register ## __LINE__ = []{ \
         using ThisEnum = EnumType; \
+        static_assert(!std::is_convertible_v<ThisEnum, int>, "Only scoped enums are supported"); \
         auto toEnum = [](const std::string& name) -> std::optional<ThisEnum> { \
             static const auto* const lookup_table = ([]{ \
                 auto* entries_map = new std::unordered_map<std::string, ThisEnum>({ \

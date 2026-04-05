@@ -73,23 +73,6 @@
         FOR_EACH(VISIT_STRUCT_FIELD, __VA_ARGS__) \
     }
 
-
-// template<typename E>
-// struct EnumIntrospect {
-//     struct enum_does_not_have_introspect{};
-
-//     enum_does_not_have_introspect _val_to_info(const E e) {
-//         static_assert(false, "unsupported enum");
-//     }
-
-//     enum_does_not_have_introspect _name_to_val(const std::string& name) {
-//         static_assert(false, "unsupported enum");
-//     }
-// };
-
-
-
-
 /**
  * Macro: DEFINE_API_VISITOR_FUNCTION
  *

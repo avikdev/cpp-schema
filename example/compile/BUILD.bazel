@@ -1,0 +1,13 @@
+load("@hedron_compile_commands//:refresh_compile_commands.bzl", "refresh_compile_commands")
+
+# Please read https://github.com/hedronvision/bazel-compile-commands-extractor
+# Run as: bazel run //compile:copy_compile_commands
+refresh_compile_commands(
+    name = "copy_compile_commands",
+    targets = {
+        # List out your binary targets you want to have compile_commands.json
+        # for in order to have autocomplete working correctly.
+        "//:graph_backend_test": "",
+        "//:graph_wasm": "",
+    },
+)

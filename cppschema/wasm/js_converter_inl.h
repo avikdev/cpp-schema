@@ -4,8 +4,10 @@
 #include <type_traits>
 
 #include "absl/log/log.h"
-#include "cppschema/common/enum_registry.h"
-#include "cppschema/common/visitor_macros.h"
+#include "cppschema/common/enum_registry.h"  // IWYU pragma: keep
+#include "cppschema/common/strong_types.h"  // IWYU pragma: keep
+#include "cppschema/common/types.h"
+#include "cppschema/common/visitor_macros.h"  // IWYU pragma: keep
 
 namespace cppschema::jsbridge {
 
@@ -116,22 +118,12 @@ struct is_enum_like : std::bool_constant<
     !std::is_convertible_v<T, int>
 > {};
 
-// template <typename T, typename = void>
-// struct is_enum_w_introspect : std::false_type {};
-
-// template <typename T>
-// struct is_enum_w_introspect<
-//     T,
-//     std::void_t<
-//         // must be callable
-//         decltype(
-//             std::declval<EnumIntrospect<T>>().to_name(std::declval<T>())
-//         )
-//     >
-// > : std::bool_constant<
-//         std::is_enum_v<T> &&
-//         !std::is_convertible_v<T, int>
-//     > {};
+// STRONG TYPES: Types that are wrappers around primitives, but are not implicitly convertible
+// to them.
+template<typename T>
+struct is_strong_type_like : std::false_type {};
+template <typename T, typename Tag>
+struct is_strong_type_like<StrongType<T, Tag>> : std::true_type {};
 
 // Unsupported type: One which satisfies none of the above.
 template<typename T>
@@ -145,7 +137,8 @@ struct is_unsupported_like : std::conjunction<
     std::negation<is_set_like<T>>,
     std::negation<is_optional_like<T>>,
     std::negation<is_visible_struct_like<T>>,
-    std::negation<is_enum_like<T>>
+    std::negation<is_enum_like<T>>,
+    std::negation<is_strong_type_like<T>>
 > {};
 
 }  // namespace internal
@@ -300,7 +293,7 @@ struct JSConverter<OptionalType, std::enable_if_t<internal::is_optional_like<Opt
         if (opt.has_value()) {
             return JSConverter<typename OptionalType::value_type>::toJS(opt.value());
         } else {
-            return emscripten::val::null();
+            return emscripten::val::undefined();
         }
     }
     static OptionalType fromJS(emscripten::val v) {
@@ -329,6 +322,8 @@ struct JSConverter<StructType, std::enable_if_t<internal::is_visible_struct_like
         auto lambda = [&v]<typename T>(const char* name, T& t) -> void {
             if (v.hasOwnProperty(name)) {
                 t = JSConverter<T>::fromJS(v[name]);
+            } else {
+                t = T{};  // Default initialize the member if the property is missing in the JS object.
             }
         };
         s._visit_members(lambda);
@@ -362,6 +357,18 @@ struct JSConverter<EnumType, std::enable_if_t<internal::is_enum_like<EnumType>::
             return std::move(enumv).value();
         }
         return EnumType{};
+    }
+};
+
+// STRONG TYPES: In JS it's same as the underlying primitive type.
+template <typename StrongType>
+struct JSConverter<StrongType, std::enable_if_t<internal::is_strong_type_like<StrongType>::value>> {
+    static emscripten::val toJS(const StrongType& s) {
+        return JSConverter<typename StrongType::value_type>::toJS(s.value());
+    }
+
+    static StrongType fromJS(emscripten::val v) {
+        return StrongType(JSConverter<typename StrongType::value_type>::fromJS(v));
     }
 };
 

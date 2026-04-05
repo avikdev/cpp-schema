@@ -7,6 +7,7 @@ module(
 bazel_dep(name = "rules_cc", version = "0.1.5")
 bazel_dep(name = "aspect_rules_js", version = "2.9.2")
 bazel_dep(name = "abseil-cpp", version = "20240722.0")
+bazel_dep(name = "googletest", version = "1.17.0")
 
 # TODO: Add unit tests.
 # bazel_dep(name = "googletest", version = "1.17.0")
@@ -14,3 +15,12 @@ bazel_dep(name = "abseil-cpp", version = "20240722.0")
 # NOTE: This module has no dependency on `emsdk`, it is upto the starting
 # wasm_cc_binary rule to depend on `emsdk`. So there is no bazel_dep on
 # `emsdk` here. However the downstream module must declare it.
+
+# hedron_compile_commands is not published to the BCR so you must use an override
+bazel_dep(name = "hedron_compile_commands", version = "1.0.0", dev_dependency = True)
+git_override(
+    module_name = "hedron_compile_commands",
+    remote = "https://github.com/eduardvercaemer/bazel-compile-commands-extractor.git",
+    commit = "e49f0cd201931f2a3137814a66a0d2e30b45cda1",
+)
+

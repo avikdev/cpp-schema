@@ -5,16 +5,20 @@
 
 #include "cppschema/apispec/api_framework.h"
 #include "cppschema/common/enum_registry.h"
+#include "cppschema/common/strong_types.h"
 #include "cppschema/common/types.h"
 #include "cppschema/common/visitor_macros.h"
 
 namespace graph {
 
+DEFINE_STRONG_UINT_TYPE(EdgeId);
+
 struct EdgeConnection {
+    EdgeId id;
     std::string source;
     std::string target;
 
-    DEFINE_STRUCT_VISITOR_FUNCTION(source, target);
+    DEFINE_STRUCT_VISITOR_FUNCTION(id, source, target);
 };
 
 enum class NodeTypeEnum {

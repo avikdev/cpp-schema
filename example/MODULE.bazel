@@ -16,3 +16,11 @@ local_path_override(
 
 # https://github.com/emscripten-core/emsdk/issues/1642
 bazel_dep(name = "emsdk", version = "4.0.17")
+
+# hedron_compile_commands is not published to the BCR so you must use an override
+bazel_dep(name = "hedron_compile_commands", version = "1.0.0", dev_dependency = True)
+git_override(
+    module_name = "hedron_compile_commands",
+    remote = "https://github.com/eduardvercaemer/bazel-compile-commands-extractor.git",
+    commit = "e49f0cd201931f2a3137814a66a0d2e30b45cda1",
+)

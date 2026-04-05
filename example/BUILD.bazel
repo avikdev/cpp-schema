@@ -7,6 +7,7 @@ cc_library(
     hdrs = ["graph_api.h"],
     deps = [
         "@cppschema//:apispec",
+        "@cppschema//:strong_types",
     ],
 )
 
@@ -28,6 +29,7 @@ cc_test(
         ":graph_api",
         ":graph_backend",
         "@cppschema//:apispec",
+        "@cppschema//:strong_types",
         "@googletest//:gtest_main",
     ],
 )

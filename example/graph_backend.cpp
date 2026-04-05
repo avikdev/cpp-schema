@@ -31,7 +31,7 @@ class GraphApiImpl : public cppschema::ApiBackend<GraphApi> {
     std::vector<std::string> addEdgesImpl(const AddEdgesRequest& request) {
         std::vector<std::string> result;
         for (const EdgeConnection& conn: request.entries) {
-            std::string new_id = "edge_" + std::to_string(edge_counter_++);
+            std::string new_id = "edge_" + std::to_string(conn.id.value);
             edge_storage_[new_id] = conn;
             result.push_back(new_id);
         }
@@ -56,7 +56,6 @@ class GraphApiImpl : public cppschema::ApiBackend<GraphApi> {
 
  private:
     int32_t node_counter_ = 1000;
-    int32_t edge_counter_ = 5000;
     std::map<std::string, std::string> node_storage_;
     std::map<std::string, EdgeConnection> edge_storage_;
 };
