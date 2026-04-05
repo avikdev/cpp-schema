@@ -364,7 +364,7 @@ struct JSConverter<EnumType, std::enable_if_t<internal::is_enum_like<EnumType>::
 template <typename StrongType>
 struct JSConverter<StrongType, std::enable_if_t<internal::is_strong_type_like<StrongType>::value>> {
     static emscripten::val toJS(const StrongType& s) {
-        return JSConverter<typename StrongType::value_type>::toJS(s.value());
+        return JSConverter<typename StrongType::value_type>::toJS(s.value);
     }
 
     static StrongType fromJS(emscripten::val v) {
