@@ -62,11 +62,11 @@ test('WASM Graph Library Test', async (t) => {
 
     const addEdgesReq = {
       entries: [
-        { source: nodeId1, target: nodeId2 },
-        { source: nodeId2, target: nodeId1 },
+        { id: 501, source: nodeId1, target: nodeId2 },
+        { id: 502, source: nodeId2, target: nodeId1 },
       ]
     };
     const edgeIds = assertRpcOkAndGetPayload(graph.addEdges(addEdgesReq));
-    assert.deepEqual(edgeIds, ["edge_5000", "edge_5001"]);
+    assert.deepEqual(edgeIds, ["edge_501", "edge_502"]);
   });
 });

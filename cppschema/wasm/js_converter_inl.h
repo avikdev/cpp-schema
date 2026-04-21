@@ -1,5 +1,6 @@
 #pragma once
 
+#include <optional>
 #include <utility>
 #include <type_traits>
 
@@ -38,9 +39,24 @@ struct is_primitive_like : std::disjunction<
     std::is_same<T, uint64_t>
 > {};
 
+
 // VOID: Type trait / Concept to identify VoidType (represents void in C++).
 template <typename T> struct is_void_like : std::false_type {};
 template <> struct is_void_like<VoidType> : std::true_type {};
+
+
+// The types allowed in sets and map keys are very restrictive, because in JS
+// using objects as map keys or as set elements yields a different semantics
+// (object reference) than in C++ (object content).
+// So we only allow primitive types as keys, which have the same semantics in
+// both C++ and Javascript.
+template<typename T>
+struct is_keyable_type : std::disjunction<
+    std::is_same<T, int32_t>,
+    std::is_same<T, uint32_t>,
+    std::is_same<T, std::string>
+> {};
+
 
 // TODO: Use concept, like:
 // template <typename T> concept is_void_type = std::is_same_v<std::decay_t<T>, VoidType>;
@@ -51,11 +67,13 @@ struct is_pair_like : std::false_type {};
 template <typename T1, typename T2>
 struct is_pair_like<std::pair<T1, T2>> : std::true_type {};
 
+
 // TUPLE: std::tuple.
 template <typename T>
 struct is_tuple_like : std::false_type {};
 template <typename... Ts>
 struct is_tuple_like<std::tuple<Ts...>> : std::true_type {};
+
 
 // MAP: Has key_type and mapped_type
 template <typename T, typename = void>
@@ -72,10 +90,12 @@ struct is_map_like_impl<T, std::void_t<
 template <typename T>
 using is_map_like = is_map_like_impl<T>;
 
+
 // ARRAY: Has value_type, but NOT a map, and NOT a string
 template <typename T, typename = void>
 struct is_array_like : std::false_type {};
 template <typename T, typename A> struct is_array_like<std::vector<T, A>> : std::true_type {};
+
 
 // SET: Has key_type and value_type, but they are the same
 template <typename T, typename = void>
@@ -84,9 +104,11 @@ template <typename T>
 struct is_set_like<T, std::void_t<typename T::key_type, typename T::value_type>> 
     : std::bool_constant<std::is_same_v<typename T::key_type, typename T::value_type> && !is_array_like<T>::value> {};
 
+
 // OPTIONAL: std::optional.
 template <typename T> struct is_optional_like : std::false_type {};
 template <typename U> struct is_optional_like<std::optional<U>> : std::true_type {};
+
 
 // Visible struct like, i.e. a struct whose members are visible. Supports only those C++ structs
 // which has defined the visitor MACRO.
@@ -111,6 +133,7 @@ struct is_visible_struct_like<
     >
 > : std::true_type {};
 
+
 // ENUMS: should be scoped enum (i.e. not trivially convertible to int).
 template <typename T>
 struct is_enum_like : std::bool_constant<
@@ -118,12 +141,19 @@ struct is_enum_like : std::bool_constant<
     !std::is_convertible_v<T, int>
 > {};
 
+
 // STRONG TYPES: Types that are wrappers around primitives, but are not implicitly convertible
 // to them.
 template<typename T>
 struct is_strong_type_like : std::false_type {};
 template <typename T, typename Tag>
 struct is_strong_type_like<StrongType<T, Tag>> : std::true_type {};
+
+template<typename T>
+struct is_keyable_strong_type : std::false_type {};
+template <typename T, typename Tag>
+struct is_keyable_strong_type<StrongType<T, Tag>> : is_keyable_type<T> {};
+
 
 // Unsupported type: One which satisfies none of the above.
 template<typename T>
@@ -222,10 +252,16 @@ struct JSConverter<TupleType, std::enable_if_t<internal::is_tuple_like<TupleType
 // MAPS: std::map, flat_map, etc.
 template <typename MapType>
 struct JSConverter<MapType, std::enable_if_t<internal::is_map_like<MapType>::value>> {
+    static_assert(
+        internal::is_keyable_type<typename MapType::key_type>::value ||
+        internal::is_keyable_strong_type<typename MapType::key_type>::value, "Map key type is not allowed in JS" );
+
     static emscripten::val toJS(const MapType& m) {
         emscripten::val obj = emscripten::val::object();
         for (const auto& [key, value] : m) {
-            obj.set(key, JSConverter<typename MapType::mapped_type>::toJS(value));
+            auto jsKey = JSConverter<typename MapType::key_type>::toJS(key);
+            auto jsValue = JSConverter<typename MapType::mapped_type>::toJS(value);
+            obj.set(std::move(jsKey), std::move(jsValue));
         }
         return obj;
     }
@@ -268,6 +304,10 @@ struct JSConverter<ArrayType, std::enable_if_t<internal::is_array_like<ArrayType
 // SETS: std::set, flat_set
 template <typename SetType>
 struct JSConverter<SetType, std::enable_if_t<internal::is_set_like<SetType>::value>> {
+    static_assert(
+        internal::is_keyable_type<typename SetType::key_type>::value ||
+        internal::is_keyable_strong_type<typename SetType::key_type>::value, "Set key type is not allowed in JS" );
+
     static emscripten::val toJS(const SetType& s) {
         emscripten::val arr = emscripten::val::array();
         for (const auto& item : s) {
@@ -293,7 +333,7 @@ struct JSConverter<OptionalType, std::enable_if_t<internal::is_optional_like<Opt
         if (opt.has_value()) {
             return JSConverter<typename OptionalType::value_type>::toJS(opt.value());
         } else {
-            return emscripten::val::undefined();
+            return emscripten::val::null();
         }
     }
     static OptionalType fromJS(emscripten::val v) {
